@@ -1,6 +1,6 @@
 # mrt
 
-mrt (My Runtime) is a proof of concept in where a Go application runs a rootless
+mrt (My Runtime) is a proof of concept where a Go application runs a rootless
 container on Linux without additional dependencies. To achieve this, mrt embeds
 [runc] and an OCI bundle based on [docker.io/library/python:3.12.4-alpine3.20].
 
