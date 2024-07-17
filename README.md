@@ -17,6 +17,18 @@ $ /tmp/mrt
 The container only for only three seconds since we're only running `sleep 3`
 inside.
 
+## Assets
+
+### `dist/assets/runc`
+
+Downloaded from https://github.com/opencontainers/runc/releases.
+
+### `dist/assets/rootfs.tar`
+
+```
+docker export -o rootfs (docker create python:3.12.4-alpine3.20)
+```
+
 
 [runc]: https://github.com/opencontainers/runc
 [docker.io/library/python:3.12.4-alpine3.20]: https://hub.docker.com/layers/library/python/3.12.4-alpine3.20/images/sha256-ebe4166fcf7fd212975cb932440ba69cfd6c27fdb9ab2253f965a1d2d7f1c476
