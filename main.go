@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 
 	"github.com/containerd/go-runc"
@@ -86,9 +87,19 @@ func provideAsset(path, dest string, mode os.FileMode) (string, error) {
 	return dest, nil
 }
 
+func isRoot() bool {
+	currentUser, err := user.Current()
+	if err != nil {
+		return false
+	}
+	return currentUser.Uid == "0"
+}
+
 func prepareSpec(dest string, rootfs string, args []string) error {
 	spec := specconv.Example()
-	specconv.ToRootless(spec)
+	if !isRoot() {
+		specconv.ToRootless(spec)
+	}
 
 	spec.Process.Args = args
 	spec.Root = &specs.Root{
