@@ -152,6 +152,10 @@ func prepareBundle(ctx context.Context, logger logr.Logger, cacheDir string, arg
 		rootFsDir  = filepath.Join(bundleDir, "rootfs")      // » ~/.cache/mrt/bundle/rootfs
 	)
 
+	if err := os.MkdirAll(bundleDir, 0o750); err != nil {
+		return "", fmt.Errorf("create bundle dir: %v", err)
+	}
+
 	if err := prepareSpec(configFile, rootFsDir, args); err != nil {
 		return "", fmt.Errorf("write spec file: %v", err)
 	}
