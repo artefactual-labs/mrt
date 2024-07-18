@@ -14,8 +14,7 @@ $ /tmp/mrt
 2024/07/17 21:27:07 Container executed - pid 0
 ```
 
-The container only for only three seconds since we're only running `sleep 3`
-inside.
+The container runs for three seconds because it executes `sleep 3`.
 
 ## Assets
 
