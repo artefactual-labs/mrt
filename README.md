@@ -21,11 +21,12 @@ deb or rpm packages could instead be bundled as part of the application binary.
 ## Usage
 
 ```
-$ go build -o /tmp/mrt .
-$ /tmp/mrt
-2024/07/17 21:27:04 Container deleted.
-2024/07/17 21:27:04 Creating container...
-2024/07/17 21:27:07 Container executed - pid 0
+$ go build -o /tmp/mrt .; /tmp/mrt
+2024-07-18T13:31:10.106+0200	V(0)	mrt	mrt/main.go:170	Using cached rootfs.
+2024-07-18T13:31:10.120+0200	V(0)	mrt	mrt/main.go:63	Container deleted.	{"id": "arbutus"}
+2024-07-18T13:31:10.120+0200	V(0)	mrt	mrt/main.go:72	Creating container	{"id": "arbutus"}
+Python 3.12.4
+2024-07-18T13:31:10.185+0200	V(0)	mrt	mrt/main.go:79	Container executed!	{"pid": 0}
 ```
 
 It runs `python -V` inside the container and print the output.
