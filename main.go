@@ -45,7 +45,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	args := []string{"sleep", "3"}
+	args := []string{"python", "-V"}
 	bundle, err := prepareBundle(ctx, logger, cacheDir, args)
 	if err != nil {
 		logger.Error(err, "Failed to prepare OCI bundle.")
@@ -63,8 +63,16 @@ func main() {
 		logger.Info("Container deleted.", "id", containerID)
 	}
 
+	io, err := runc.NewSTDIO()
+	if err != nil {
+		logger.Error(err, "Failed to configure the standard streams.", "id", containerID)
+		os.Exit(1)
+	}
+
 	logger.Info("Creating container", "id", containerID)
-	if pid, err := r.Run(ctx, containerID, bundle, &runc.CreateOpts{}); err != nil {
+	if pid, err := r.Run(ctx, containerID, bundle, &runc.CreateOpts{
+		IO: io,
+	}); err != nil {
 		logger.Error(err, "Failed to run container.", "id", containerID)
 		os.Exit(1)
 	} else {

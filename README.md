@@ -28,7 +28,7 @@ $ /tmp/mrt
 2024/07/17 21:27:07 Container executed - pid 0
 ```
 
-The container runs for three seconds because it executes `sleep 3`.
+It runs `python -V` inside the container and print the output.
 
 ## Assets
 
