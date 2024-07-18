@@ -18,22 +18,25 @@ import (
 	"github.com/artefactual-labs/mrt/dist"
 )
 
-const containerID = "arbutus"
+const (
+	appName     = "mrt"
+	containerID = "arbutus"
+)
 
 func main() {
 	ctx := context.Background()
 
-	tmpDir, err := os.MkdirTemp("", "mrt-*")
+	cacheDir, err := cacheDir()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	runcPath, err := installRunc(tmpDir)
+	runcPath, err := installRunc(cacheDir)
 	if err != nil {
 		log.Fatal("Failed to install runc: ", err)
 	}
 
-	bundle, err := prepareBundle(ctx, tmpDir)
+	bundle, err := prepareBundle(ctx, cacheDir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,6 +55,20 @@ func main() {
 	} else {
 		log.Printf("Container executed - pid %d", pid)
 	}
+}
+
+func cacheDir() (string, error) {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		return "", err
+	}
+
+	path := filepath.Join(cacheDir, appName)
+	if err := os.MkdirAll(path, os.FileMode(0o700)); err != nil {
+		return "", err
+	}
+
+	return path, nil
 }
 
 func installRunc(baseDir string) (string, error) {
