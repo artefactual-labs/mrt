@@ -32,17 +32,24 @@ Python 3.12.4
 
 It runs `python -V` inside the container and print the output.
 
-## Assets
+## Generate assets
 
-### `dist/assets/runc`
+The process of generating the embedded assets has not been automated yet.
 
-Downloaded from https://github.com/opencontainers/runc/releases.
+### `dist/assets/runc.amd64`
 
-### `dist/assets/rootfs.tar`
+    curl -Ls https://github.com/opencontainers/runc/releases/download/v1.2.0-rc.2/runc.amd64 > dist/assets/runc.amd64
+    chmod +x dist/assets/runc.amd64
 
-```
-docker export -o rootfs (docker create python:3.12.4-alpine3.20)
-```
+### `dist/assets/rootfs.tar.zst`
+
+    docker pull python:3.12.4-alpine3.20
+    docker export -o ./dist/assets/rootfs.tar (docker create python:3.12.4-alpine3.20)
+    zstd --rm --compress dist/assets/rootfs.tar
+
+### `dist/assets/rootfs.tar.zst.md5`
+
+    md5sum dist/assets/rootfs.tar.zst | awk '{ print $1 }' > dist/assets/rootfs.tar.zst.md5
 
 
 [runc]: https://github.com/opencontainers/runc

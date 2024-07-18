@@ -23,6 +23,12 @@ const (
 	containerID = "arbutus"
 )
 
+const (
+	rootFsAsset    = "rootfs.tar.zst"
+	rootFsSumAsset = "rootfs.tar.zst.md5"
+	runcAsset      = "runc.amd64"
+)
+
 func main() {
 	ctx := context.Background()
 
@@ -103,7 +109,7 @@ func cacheDir() (string, error) {
 
 func installRunc(cacheDir string) (string, error) {
 	path := filepath.Join(cacheDir, "runc")
-	if err := dist.Write("assets/runc.amd64", filepath.Join(cacheDir, "runc"), 0o750); err != nil {
+	if err := dist.Write(filepath.Join("assets", runcAsset), filepath.Join(cacheDir, "runc"), 0o750); err != nil {
 		return "", err
 	}
 
@@ -163,7 +169,7 @@ func cachedRootFS(cacheDir, dest string) bool {
 		return false
 	}
 
-	hash, err := os.ReadFile(filepath.Join(cacheDir, "rootfs.md5"))
+	hash, err := os.ReadFile(filepath.Join(cacheDir, rootFsSumAsset))
 	if err != nil {
 		return false
 	}
@@ -178,8 +184,8 @@ func prepareRootFS(ctx context.Context, logger logr.Logger, cacheDir, dest strin
 		return nil
 	}
 
-	tarFile := filepath.Join(cacheDir, "rootfs.tar")
-	err := dist.Write("assets/rootfs.tar", tarFile, 0o640)
+	tarFile := filepath.Join(cacheDir, rootFsAsset)
+	err := dist.Write(filepath.Join("assets", rootFsAsset), tarFile, 0o640)
 	if err != nil {
 		return err
 	}
@@ -189,14 +195,14 @@ func prepareRootFS(ctx context.Context, logger logr.Logger, cacheDir, dest strin
 	if err := os.MkdirAll(dest, os.FileMode(0o750)); err != nil {
 		return err
 	}
-	cmd := exec.CommandContext(ctx, "tar", "-xf", tarFile, "-C", dest)
+	cmd := exec.CommandContext(ctx, "tar", "-I", "zstd", "-xf", tarFile, "-C", dest)
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("extract tar file: %v", err)
 	}
 
-	sumFile := filepath.Join(cacheDir, "rootfs.md5")
-	if err := dist.Write("assets/rootfs.md5", sumFile, 0o640); err != nil {
+	sumFile := filepath.Join(cacheDir, rootFsSumAsset)
+	if err := dist.Write(filepath.Join("assets", rootFsSumAsset), sumFile, 0o640); err != nil {
 		return err
 	}
 

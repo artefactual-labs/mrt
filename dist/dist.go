@@ -11,7 +11,7 @@ import (
 var Assets embed.FS
 
 func MatchRootFSChecksum(sum []byte) bool {
-	content, err := Assets.ReadFile("assets/rootfs.md5")
+	content, err := Assets.ReadFile("assets/rootfs.tar.zst.md5")
 	if err != nil {
 		return false
 	}
