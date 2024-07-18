@@ -14,9 +14,10 @@ the OCI bundle from both an embedded root filesystem and by pulling images from
 published repositories on demand.
 
 This initiative emerges within the CCP project, where we are exploring
-alternative distributions of Archivematica. In this context, software
-dependencies typically distributed along with the `archivematica-mcp-client`
-deb or rpm packages could instead be bundled as part of the application binary.
+alternative distributions of Archivematica, focusing on self-contained solutions
+for single-node environments. In this context, software dependencies typically
+distributed along with the `archivematica-mcp-client` deb or rpm packages could
+instead be bundled as part of the application binary.
 
 ## Usage
 
