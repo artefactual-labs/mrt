@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
 
 	"github.com/containerd/go-runc"
+	"github.com/go-logr/logr"
 	"github.com/opencontainers/runc/libcontainer/specconv"
 	"github.com/opencontainers/runtime-spec/specs-go"
+	"go.artefactual.dev/tools/log"
 
 	"github.com/artefactual-labs/mrt/dist"
 )
@@ -26,34 +26,49 @@ const (
 func main() {
 	ctx := context.Background()
 
+	logger := log.New(os.Stderr,
+		log.WithName(appName),
+		log.WithDebug(true),
+		log.WithLevel(10),
+	)
+	defer log.Sync(logger)
+
 	cacheDir, err := cacheDir()
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err, "Failed to configure user cache directory.")
+		os.Exit(1)
 	}
 
 	runcPath, err := installRunc(cacheDir)
 	if err != nil {
-		log.Fatal("Failed to install runc: ", err)
+		logger.Error(err, "Failed to install runc.")
+		os.Exit(1)
 	}
 
-	bundle, err := prepareBundle(ctx, cacheDir)
+	args := []string{"sleep", "3"}
+	bundle, err := prepareBundle(ctx, logger, cacheDir, args)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err, "Failed to prepare OCI bundle.")
+		os.Exit(1)
 	}
 
-	r := runc.Runc{Command: runcPath}
+	r := runc.Runc{
+		Command: runcPath,
+	}
 
 	if err = r.Delete(ctx, containerID, &runc.DeleteOpts{Force: true}); err != nil {
-		log.Fatal(err)
+		logger.Error(err, "Failed to delete existing container.", "id", containerID)
+		os.Exit(1)
 	} else {
-		log.Println("Container deleted.")
+		logger.Info("Container deleted.", "id", containerID)
 	}
 
-	log.Println("Creating container...")
-	if pid, err := r.Run(ctx, "arbutus", bundle, &runc.CreateOpts{}); err != nil {
-		log.Fatal(err)
+	logger.Info("Creating container", "id", containerID)
+	if pid, err := r.Run(ctx, containerID, bundle, &runc.CreateOpts{}); err != nil {
+		logger.Error(err, "Failed to run container.", "id", containerID)
+		os.Exit(1)
 	} else {
-		log.Printf("Container executed - pid %d", pid)
+		logger.Info("Container executed!", "pid", pid)
 	}
 }
 
@@ -71,37 +86,13 @@ func cacheDir() (string, error) {
 	return path, nil
 }
 
-func installRunc(baseDir string) (string, error) {
-	return provideAsset("assets/runc.amd64", filepath.Join(baseDir, "runc"), 0o750)
-}
-
-func provideAsset(path, dest string, mode os.FileMode) (string, error) {
-	src, err := dist.Assets.Open(path)
-	if err != nil {
+func installRunc(cacheDir string) (string, error) {
+	path := filepath.Join(cacheDir, "runc")
+	if err := dist.Write("assets/runc.amd64", filepath.Join(cacheDir, "runc"), 0o750); err != nil {
 		return "", err
 	}
 
-	destFile, err := os.Create(dest)
-	if err != nil {
-		return "", err
-	}
-	defer destFile.Close()
-
-	if err := os.Chmod(dest, mode); err != nil {
-		return "", err
-	}
-
-	_, err = io.Copy(destFile, src)
-	if err != nil {
-		return "", err
-	}
-
-	err = destFile.Sync()
-	if err != nil {
-		return "", err
-	}
-
-	return dest, nil
+	return path, nil
 }
 
 func isRoot() bool {
@@ -133,32 +124,66 @@ func prepareSpec(dest string, rootfs string, args []string) error {
 	return nil
 }
 
-func prepareBundle(ctx context.Context, baseDir string) (string, error) {
-	fsTar, err := provideAsset("assets/rootfs.tar", filepath.Join(baseDir, "rootfs.tar"), 0o640)
-	if err != nil {
-		return "", err
-	}
-	defer func() {
-		_ = os.Remove(fsTar)
-	}()
+func prepareBundle(ctx context.Context, logger logr.Logger, cacheDir string, args []string) (string, error) {
+	var (
+		bundleDir  = filepath.Join(cacheDir, "bundle")       // » ~/.cache/mrt/bundle
+		configFile = filepath.Join(bundleDir, "config.json") // » ~/.cache/mrt/bundle/config.json
+		rootFsDir  = filepath.Join(bundleDir, "rootfs")      // » ~/.cache/mrt/bundle/rootfs
+	)
 
-	bundleDir := filepath.Join(baseDir, "bundle")
-	configFile := filepath.Join(bundleDir, "config.json")
-	rootFsDir := filepath.Join(bundleDir, "rootfs")
-
-	if err := os.MkdirAll(rootFsDir, os.FileMode(0o750)); err != nil {
-		return "", err
-	}
-
-	cmd := exec.CommandContext(ctx, "tar", "-xf", fsTar, "-C", rootFsDir)
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("extract tar file: %v", err)
-	}
-
-	if err := prepareSpec(configFile, rootFsDir, []string{"sleep", "3"}); err != nil {
+	if err := prepareSpec(configFile, rootFsDir, args); err != nil {
 		return "", fmt.Errorf("write spec file: %v", err)
 	}
 
+	if err := prepareRootFS(ctx, logger, cacheDir, rootFsDir); err != nil {
+		return "", fmt.Errorf("build rootfs: %v", err)
+	}
+
 	return bundleDir, nil
+}
+
+func cachedRootFS(cacheDir, dest string) bool {
+	info, err := os.Stat(dest)
+	if err != nil || !info.IsDir() {
+		return false
+	}
+
+	hash, err := os.ReadFile(filepath.Join(cacheDir, "rootfs.md5"))
+	if err != nil {
+		return false
+	}
+
+	return dist.MatchRootFSChecksum(hash)
+}
+
+// prepareRootFS unpacks the rootfs.
+func prepareRootFS(ctx context.Context, logger logr.Logger, cacheDir, dest string) error {
+	if cachedRootFS(cacheDir, dest) {
+		logger.Info("Using cached rootfs.")
+		return nil
+	}
+
+	tarFile := filepath.Join(cacheDir, "rootfs.tar")
+	err := dist.Write("assets/rootfs.tar", tarFile, 0o640)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = os.Remove(tarFile)
+	}()
+	if err := os.MkdirAll(dest, os.FileMode(0o750)); err != nil {
+		return err
+	}
+	cmd := exec.CommandContext(ctx, "tar", "-xf", tarFile, "-C", dest)
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("extract tar file: %v", err)
+	}
+
+	sumFile := filepath.Join(cacheDir, "rootfs.md5")
+	if err := dist.Write("assets/rootfs.md5", sumFile, 0o640); err != nil {
+		return err
+	}
+
+	return nil
 }
