@@ -56,6 +56,13 @@ func main() {
 		Command: runcPath,
 	}
 
+	ver, err := r.Version(ctx)
+	if err != nil {
+		logger.Error(err, "Failed to read runc version.")
+		os.Exit(1)
+	}
+	logger.Info("Using runc.", "version", ver.Runc, "path", runcPath)
+
 	if err = r.Delete(ctx, containerID, &runc.DeleteOpts{Force: true}); err != nil {
 		logger.Error(err, "Failed to delete existing container.", "id", containerID)
 		os.Exit(1)
