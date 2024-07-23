@@ -19,7 +19,18 @@ for single-node environments. In this context, software dependencies typically
 distributed along with the `archivematica-mcp-client` deb or rpm packages could
 instead be bundled as part of the application binary.
 
+## Supported architectures
+
+These are the platform-architecture combinations for which mrt provides
+compatibility:
+
+* linux-amd64
+* linux-arm64
+
 ## Usage
+
+Binaries are not published since this project is a proof of concept. Build the
+binary from sources as follows:
 
 ```
 $ go build -o /tmp/mrt .; /tmp/mrt
@@ -34,22 +45,16 @@ It runs `python -V` inside the container and print the output.
 
 ## Generate assets
 
-The process of generating the embedded assets has not been automated yet.
+Use `generate.sh` to generate all the assets required:
 
-### `dist/assets/runc.amd64`
-
-    curl -Ls https://github.com/opencontainers/runc/releases/download/v1.2.0-rc.2/runc.amd64 > dist/assets/runc.amd64
-    chmod +x dist/assets/runc.amd64
-
-### `dist/assets/rootfs.tar.zst`
-
-    docker pull python:3.12.4-alpine3.20
-    docker export -o ./dist/assets/rootfs.tar (docker create python:3.12.4-alpine3.20)
-    zstd --rm --compress dist/assets/rootfs.tar
-
-### `dist/assets/rootfs.tar.zst.md5`
-
-    md5sum dist/assets/rootfs.tar.zst | awk '{ print $1 }' > dist/assets/rootfs.tar.zst.md5
+```
+$ ./generate.sh
+Downloading runc.arm64...
+Downloading runc.amd64...
+Downloading python:3.12.4-alpine3.20 (linux/amd64)...
+Downloading python:3.12.4-alpine3.20 (linux/arm64)...
+All assets have been generated successfully!
+```
 
 
 [runc]: https://github.com/opencontainers/runc

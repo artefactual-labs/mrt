@@ -2,25 +2,32 @@ package dist
 
 import (
 	"bytes"
-	"embed"
+	"fmt"
 	"io"
 	"os"
+	"runtime"
 )
 
-//go:embed assets/*
-var Assets embed.FS
+var (
+	runcPath      = fmt.Sprintf("assets/runc.%s", runtime.GOARCH)
+	rootFSPAth    = fmt.Sprintf("assets/rootfs.%s.tar.zst", runtime.GOARCH)
+	rootFSSumPath = fmt.Sprintf("assets/rootfs.%s.tar.zst.md5", runtime.GOARCH)
+)
 
-func MatchRootFSChecksum(sum []byte) bool {
-	content, err := Assets.ReadFile("assets/rootfs.tar.zst.md5")
-	if err != nil {
-		return false
-	}
+func WriteRunc(dest string) error {
+	return Write(runcPath, dest, os.FileMode(0o750))
+}
 
-	return bytes.Equal(content, sum)
+func WriteRootFS(dest string) error {
+	return Write(rootFSPAth, dest, os.FileMode(0o640))
+}
+
+func WriteRootFSSum(dest string) error {
+	return Write(rootFSSumPath, dest, os.FileMode(0o640))
 }
 
 func Write(path, dest string, mode os.FileMode) error {
-	src, err := Assets.Open(path)
+	src, err := assets.Open(path)
 	if err != nil {
 		return err
 	}
@@ -46,4 +53,13 @@ func Write(path, dest string, mode os.FileMode) error {
 	}
 
 	return nil
+}
+
+func CheckRootFSSum(sum []byte) bool {
+	content, err := assets.ReadFile(rootFSSumPath)
+	if err != nil {
+		return false
+	}
+
+	return bytes.Equal(content, sum)
 }
