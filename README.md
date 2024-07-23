@@ -30,18 +30,23 @@ compatibility:
 ## Usage
 
 Binaries are not published since this project is a proof of concept. Build the
-binary from sources as follows:
+binary from the sources as follows:
 
-```
-$ go build -o /tmp/mrt .; /tmp/mrt
-2024-07-18T13:31:10.106+0200	V(0)	mrt	mrt/main.go:170	Using cached rootfs.
-2024-07-18T13:31:10.120+0200	V(0)	mrt	mrt/main.go:63	Container deleted.	{"id": "arbutus"}
-2024-07-18T13:31:10.120+0200	V(0)	mrt	mrt/main.go:72	Creating container	{"id": "arbutus"}
-Python 3.12.4
-2024-07-18T13:31:10.185+0200	V(0)	mrt	mrt/main.go:79	Container executed!	{"pid": 0}
-```
+    go build -o /tmp/mrt .
 
-It runs `python -V` inside the container and print the output.
+Execute the binary:
+
+    $ /tmp/mrt
+    2024-07-23T13:18:47.679+0200	V(0)	mrt	mrt/main.go:181	Using cached rootfs.
+    2024-07-23T13:18:47.684+0200	V(0)	mrt	mrt/main.go:64	Using runc.	{"version": "1.2.0-rc.2", "path": "/home/jesus/.cache/mrt/runc"}
+    2024-07-23T13:18:47.690+0200	V(0)	mrt	mrt/main.go:70	Container deleted.	{"id": "arbutus"}
+    2024-07-23T13:18:47.690+0200	V(0)	mrt	mrt/main.go:79	Creating container	{"id": "arbutus"}
+    Python 3.12.4 (x86_64)
+    2024-07-23T13:18:47.883+0200	V(0)	mrt	mrt/main.go:86	Container executed!	{"pid": 0}
+
+This is the command we are running inside the container:
+
+    python -c "import platform; print(f'Python {platform.python_version()} ({platform.machine()})')"
 
 ## Generate assets
 

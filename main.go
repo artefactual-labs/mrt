@@ -45,7 +45,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	args := []string{"python", "-V"}
+	args := []string{"python", "-c", "import platform; print(f'Python {platform.python_version()} ({platform.machine()})')"}
 	bundle, err := prepareBundle(ctx, logger, cacheDir, args)
 	if err != nil {
 		logger.Error(err, "Failed to prepare OCI bundle.")
