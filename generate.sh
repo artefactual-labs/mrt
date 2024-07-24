@@ -7,16 +7,11 @@ __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$__dir/dist/assets"
 
 generate_runc() {
-    declare -A archs
-    archs=(
-        [amd64]="https://github.com/opencontainers/runc/releases/download/v1.2.0-rc.2/runc.amd64"
-        [arm64]="https://github.com/opencontainers/runc/releases/download/v1.2.0-rc.2/runc.arm64"
-    )
-    for arch in "${!archs[@]}"; do
-        echo "Downloading runc.$arch..."
-        curl -Ls "${archs[$arch]}" > "$__dir/dist/assets/runc.$arch"
-        chmod +x "$__dir/dist/assets/runc.$arch"
-    done
+    local arch=$1
+    local version=$2
+    echo "Downloading runc.$arch ($version)..."
+    curl -Ls "https://github.com/opencontainers/runc/releases/download/$version/runc.$arch" > "$__dir/dist/assets/runc.$arch"
+    chmod +x "$__dir/dist/assets/runc.$arch"
 }
 
 generate_rootfs() {
@@ -32,8 +27,9 @@ generate_rootfs() {
     docker rm $container_id 1>/dev/null
 }
 
-generate_runc
-generate_rootfs amd64 python:3.12.4-alpine3.20
+generate_runc amd64 v1.1.13
+generate_runc arm64 v1.1.13
+generate_rootfs amd4 python:3.12.4-alpine3.20
 generate_rootfs arm64 python:3.12.4-alpine3.20
 
 echo "All assets have been generated successfully!"
