@@ -4,10 +4,10 @@ go 1.22.5
 
 require (
 	github.com/containerd/go-runc v1.1.0
-	github.com/go-logr/logr v1.4.1
-	github.com/opencontainers/runc v1.1.13
+	github.com/go-logr/logr v1.4.2
+	github.com/opencontainers/runc v1.1.14
 	github.com/opencontainers/runtime-spec v1.2.0
-	go.artefactual.dev/tools v0.14.0
+	go.artefactual.dev/tools v0.16.0
 )
 
 require (

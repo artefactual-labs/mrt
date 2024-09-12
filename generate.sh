@@ -27,9 +27,9 @@ generate_rootfs() {
     docker rm $container_id 1>/dev/null
 }
 
-generate_runc amd64 v1.1.13
-generate_runc arm64 v1.1.13
-generate_rootfs amd64 python:3.12.4-alpine3.20
-generate_rootfs arm64 python:3.12.4-alpine3.20
+generate_runc amd64 v1.1.14
+generate_runc arm64 v1.1.14
+generate_rootfs amd64 python:3.12.6-alpine3.20
+generate_rootfs arm64 python:3.12.6-alpine3.20
 
 echo "All assets have been generated successfully!"
