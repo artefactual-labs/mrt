@@ -2,7 +2,8 @@
 
 mrt (My Runtime) is a proof of concept where a Go application runs a rootless
 container on Linux without additional dependencies. To achieve this, mrt embeds
-[runc] and an [OCI bundle] based on [python:3.12.4-alpine3.20].
+[runc] and an [OCI bundle] based on a Python image using a modern release of
+Python 3.
 
 ## Hypothesis
 
@@ -37,16 +38,49 @@ binary from the sources as follows:
 Execute the binary:
 
     $ /tmp/mrt
-    2024-07-23T13:18:47.679+0200	V(0)	mrt	mrt/main.go:181	Using cached rootfs.
-    2024-07-23T13:18:47.684+0200	V(0)	mrt	mrt/main.go:64	Using runc.	{"version": "1.2.0-rc.2", "path": "/home/jesus/.cache/mrt/runc"}
-    2024-07-23T13:18:47.690+0200	V(0)	mrt	mrt/main.go:70	Container deleted.	{"id": "arbutus"}
-    2024-07-23T13:18:47.690+0200	V(0)	mrt	mrt/main.go:79	Creating container	{"id": "arbutus"}
-    Python 3.12.4 (x86_64)
-    2024-07-23T13:18:47.883+0200	V(0)	mrt	mrt/main.go:86	Container executed!	{"pid": 0}
+    2025-01-14T12:21:38.761+0100    V(0)    mrt     mrt/main.go:183 Using cached rootfs.
+    2025-01-14T12:21:38.765+0100    V(0)    mrt     mrt/main.go:64  Using runc.     {"version": "1.2.4", "path": "/home/jesus/.cache/mrt/runc"}
+    2025-01-14T12:21:38.768+0100    V(0)    mrt     mrt/main.go:70  Container deleted.      {"id": "arbutus"}
+    2025-01-14T12:21:38.768+0100    V(0)    mrt     mrt/main.go:79  Creating container      {"id": "arbutus"}
+    Python 3.13.1 (x86_64)
+    2025-01-14T12:21:38.919+0100    V(0)    mrt     mrt/main.go:86  Container executed!     {"pid": 0}
 
 This is the command we are running inside the container:
 
     python -c "import platform; print(f'Python {platform.python_version()} ({platform.machine()})')"
+
+## Rootless containers
+
+`mrt` automatically attempts to create containers in rootless mode if it detects
+that the user running `mrt` does not have root privileges. However, this mode
+introduces some additional complexities, as outlined below.
+
+### Enabling user namespaces
+
+User namespaces must be enabled on the system. Run the following command:
+
+    sudo sysctl -w kernel.unprivileged_userns_clone=1
+
+To make this change persistent, add the following line to `/etc/sysctl.conf`:
+
+    kernel.unprivileged_userns_clone=1
+
+### Configuring security frameworks
+
+In environments using AppArmor, the `runc` binary deployed by `mrt` may require
+a specific profile to execute. For example, adjusting the path as needed, add
+the following profile to `/etc/apparmor.d/mrt`:
+
+```plaintext
+profile mrt /home/user/.cache/mrt/runc flags=(unconfined) {
+    userns,
+    /home/user/.cache/mrt/runc ix,
+}
+```
+
+Load the profile with:
+
+    sudo apparmor_parser -r /etc/apparmor.d/mrt
 
 ## Generate assets
 
@@ -63,5 +97,5 @@ All assets have been generated successfully!
 
 
 [runc]: https://github.com/opencontainers/runc
-[python:3.12.4-alpine3.20]: https://hub.docker.com/layers/library/python/3.12.4-alpine3.20/images/sha256-ebe4166fcf7fd212975cb932440ba69cfd6c27fdb9ab2253f965a1d2d7f1c476
+[python:3.13]: https://hub.docker.com/_/python
 [OCI bundle]: https://github.com/opencontainers/runtime-spec/blob/main/bundle.md
