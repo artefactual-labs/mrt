@@ -5,15 +5,15 @@ go 1.23.4
 require (
 	github.com/containerd/go-runc v1.1.0
 	github.com/go-logr/logr v1.4.2
-	github.com/opencontainers/runc v1.2.4
-	github.com/opencontainers/runtime-spec v1.2.0
-	go.artefactual.dev/tools v0.17.0
+	github.com/opencontainers/runc v1.2.5
+	github.com/opencontainers/runtime-spec v1.2.1
+	go.artefactual.dev/tools v0.18.0
 )
 
 require (
 	github.com/containerd/console v1.0.4 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
-	github.com/cyphar/filepath-securejoin v0.3.5 // indirect
+	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/moby/sys/mountinfo v0.7.1 // indirect
