@@ -125,6 +125,8 @@ func prepareSpec(dest string, rootfs string, args []string) error {
 	}
 
 	spec.Process.Args = args
+	// Disable TTY to run in non-interactive environments (e.g. CI).
+	spec.Process.Terminal = false
 	spec.Root = &specs.Root{
 		Path:     rootfs,
 		Readonly: true,
