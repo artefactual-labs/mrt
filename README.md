@@ -42,7 +42,7 @@ Execute the binary:
     2025-01-14T12:21:38.765+0100    V(0)    mrt     mrt/main.go:64  Using runc.     {"version": "1.2.4", "path": "/home/jesus/.cache/mrt/runc"}
     2025-01-14T12:21:38.768+0100    V(0)    mrt     mrt/main.go:70  Container deleted.      {"id": "arbutus"}
     2025-01-14T12:21:38.768+0100    V(0)    mrt     mrt/main.go:79  Creating container      {"id": "arbutus"}
-    Python 3.13.1 (x86_64)
+    Python 3.14.0 (x86_64)
     2025-01-14T12:21:38.919+0100    V(0)    mrt     mrt/main.go:86  Container executed!     {"pid": 0}
 
 This is the command we are running inside the container:
