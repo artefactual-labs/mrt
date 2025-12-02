@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    name: Build and run (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build
+        run: go build -o /tmp/mrt .
+      - name: Run and assert stderr
+        run: |
+          set -euo pipefail
+          dump_logs() {
+            echo "::group::stdout.log"
+            cat stdout.log 2>/dev/null || true
+            echo "::endgroup::"
+            echo "::group::stderr.log"
+            cat stderr.log 2>/dev/null || true
+            echo "::endgroup::"
+          }
+          trap dump_logs ERR
+
+          # Run with sudo so runc can create the required namespaces on GitHub runners.
+          sudo -E /tmp/mrt >stdout.log 2>stderr.log
+          sudo chown "$(id -u):$(id -g)" stdout.log stderr.log
+          cat stderr.log
+          grep -q "Container executed!" stderr.log
