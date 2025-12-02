@@ -1,28 +1,29 @@
 module github.com/artefactual-labs/mrt
 
-go 1.24.2
+go 1.25.4
 
 require (
 	github.com/containerd/go-runc v1.1.0
-	github.com/go-logr/logr v1.4.2
-	github.com/opencontainers/runc v1.3.0
-	github.com/opencontainers/runtime-spec v1.2.1
-	go.artefactual.dev/tools v0.18.0
+	github.com/go-logr/logr v1.4.3
+	github.com/opencontainers/runc v1.4.0
+	github.com/opencontainers/runtime-spec v1.3.0
+	go.artefactual.dev/tools v0.21.0
 )
 
 require (
-	github.com/containerd/console v1.0.4 // indirect
-	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
-	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
+	cyphar.com/go-pathrs v0.2.1 // indirect
+	github.com/containerd/console v1.0.5 // indirect
+	github.com/coreos/go-systemd/v22 v22.6.0 // indirect
+	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/moby/sys/mountinfo v0.7.2 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
-	github.com/opencontainers/cgroups v0.0.1 // indirect
-	github.com/seccomp/libseccomp-golang v0.10.0 // indirect
+	github.com/opencontainers/cgroups v0.0.6 // indirect
+	github.com/seccomp/libseccomp-golang v0.11.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/net v0.40.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 )
